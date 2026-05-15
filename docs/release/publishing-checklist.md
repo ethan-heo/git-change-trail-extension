@@ -17,12 +17,9 @@
 - [x] Add a Git remote or canonical repository URL.
 - [x] Add `repository`, `bugs`, and `homepage` fields to `package.json`.
 - [ ] Create or verify the Marketplace publisher ID `ethanheo`.
-- [ ] Create an Azure DevOps Marketplace Personal Access Token with Marketplace Manage scope.
-- [ ] Add the PAT as a GitHub Actions repository secret named `VSCE_PAT`.
-- [x] Add the GitHub Actions Marketplace publishing workflow.
 - [ ] Bump `package.json` version before each `main` push that should publish a new Marketplace release.
-- [ ] Run `pnpm dlx @vscode/vsce login ethanheo`.
-- [ ] Publish with `pnpm dlx @vscode/vsce publish`.
+- [ ] Build a VSIX with `pnpm run package:vsix`.
+- [ ] Upload the generated `.vsix` file from the Marketplace publisher management page.
 
 ## Post-publish smoke test
 

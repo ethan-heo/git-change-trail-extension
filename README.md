@@ -1,87 +1,92 @@
 # Git Author Explorer
 
-Git Author Explorer는 VS Code 사이드바에서 Git 저자와 날짜 범위를 기준으로 변경 파일을 탐색하는 확장 프로그램입니다. 여러 저자를 선택해 기간 내 변경된 파일을 한 번에 확인하고, 선택한 파일과 관련된 의존 파일도 함께 추적할 수 있도록 돕습니다.
+[한국어](README.ko.md)
 
-## 주요 기능
+Git Author Explorer is a VS Code extension for exploring files changed by Git authors within a date range. It helps you select one or more authors, review the files they changed, and inspect related dependency files from the VS Code side bar.
 
-- Git 저자 이름 또는 이메일 기준 검색
-- 여러 저자 선택 및 선택 해제
-- From/To 날짜 범위로 변경 파일 필터링
-- 변경 파일을 디렉터리 트리 형태로 표시
-- 파일 클릭 시 VS Code 에디터에서 열기
-- 선택 파일과 관련된 의존 파일 탐색
-- Git 저장소 없음, Git 미설치, 빈 검색 결과에 대한 안내
-- 영어/한국어 로컬라이징 지원
+## Features
 
-## 요구 사항
+- Search Git authors by name or email.
+- Select and remove multiple authors.
+- Filter changed files by From/To date range.
+- Browse changed files in a directory tree.
+- Open selected files in the VS Code editor.
+- Explore dependency files related to a selected file.
+- Show helpful states for missing Git repositories, missing Git CLI, and empty results.
+- Support English and Korean localization.
 
-- VS Code 1.90.0 이상
+## Requirements
+
+- VS Code 1.90.0 or later
 - Git CLI
-- Node.js 20 이상 권장
-- pnpm 10.19.0 이상 권장
+- Node.js 20 or later recommended
+- pnpm 10.19.0 or later recommended
 
-이 확장은 Git 저장소가 열린 VS Code 워크스페이스에서 동작합니다.
+This extension works when a Git repository is opened in the VS Code workspace.
 
-## 시작하기
+## Getting Started
 
 ```bash
 pnpm install
 pnpm run compile
 ```
 
-VS Code에서 이 저장소를 연 뒤 `Run Extension` 디버그 구성을 실행하면 Extension Development Host에서 확장을 확인할 수 있습니다.
+Open this repository in VS Code and run the `Run Extension` debug configuration to launch the Extension Development Host.
 
-## 개발 명령어
+## Development Commands
 
 ```bash
 pnpm run compile
 pnpm run watch
 pnpm run lint
 pnpm run check
+pnpm run package:vsix
 ```
 
-- `compile`: TypeScript를 `dist/`로 빌드합니다.
-- `watch`: TypeScript watch 빌드를 실행합니다.
-- `lint`: `src/` TypeScript 파일을 검사합니다.
-- `check`: 컴파일 검증을 실행합니다.
+- `compile`: Builds TypeScript into `dist/`.
+- `watch`: Runs the TypeScript compiler in watch mode.
+- `lint`: Lints TypeScript files in `src/`.
+- `check`: Runs the compile check.
+- `package:vsix`: Builds a `.vsix` package for manual Marketplace upload.
 
-## 프로젝트 구조
+## Project Structure
 
 ```text
 src/
-  extension.ts            확장 진입점과 VS Code 명령 등록
-  gitService.ts           Git CLI 실행 및 결과 파싱
-  searchViewProvider.ts   사이드바 검색 Webview
-  fileTreeProvider.ts     변경 파일 Tree View
-  dependencyService.ts    관련 의존 파일 탐색
-l10n/                     런타임 로컬라이징 번들
-docs/                     요구사항, 설계, 릴리스 계획 문서
-resources/                확장 아이콘 등 정적 리소스
+  extension.ts            Extension entry point and VS Code command registration
+  gitService.ts           Git CLI execution and output parsing
+  searchViewProvider.ts   Side bar search webview
+  fileTreeProvider.ts     Changed file tree view
+  dependencyService.ts    Related dependency file discovery
+l10n/                     Runtime localization bundles
+docs/                     Requirements, design, and release planning docs
+resources/                Extension icons and static resources
 ```
 
-## 기여하기
+## Contributing
 
-이슈, 버그 리포트, 기능 제안, 문서 개선 모두 환영합니다.
+Issues, bug reports, feature suggestions, and documentation improvements are welcome.
 
-1. 저장소를 포크합니다.
-2. 변경 내용을 별도 브랜치에서 작업합니다.
-3. `pnpm run check`를 실행해 빌드가 통과하는지 확인합니다.
-4. 변경 의도와 테스트 결과를 포함해 Pull Request를 생성합니다.
+1. Fork the repository.
+2. Create a branch for your changes.
+3. Run `pnpm run check`.
+4. Open a pull request with the intent of the change and verification notes.
 
-버그를 제보할 때는 사용 중인 VS Code 버전, 운영체제, 재현 절차, 기대 동작과 실제 동작을 함께 적어주세요.
+When reporting a bug, include your VS Code version, operating system, reproduction steps, expected behavior, and actual behavior.
 
-## 문서
+## Documentation
 
-세부 요구사항과 구현 계획은 `docs/` 아래에서 관리합니다.
+Detailed requirements and implementation plans are maintained under `docs/`.
 
 - `docs/design/requirements.md`
 - `docs/design/architecture.md`
 - `docs/release/qa-release-plan.md`
+- `docs/release/publishing-checklist.md`
 
-## 릴리스 상태
+## Release Status
 
-현재 버전은 `0.1.0`이며 초기 개발 단계입니다. 공개 배포 전에 Marketplace 게시자와 배포 토큰을 확정해야 합니다.
+The current version is `0.1.0` and is in early development. Before each Marketplace release, bump the version in `package.json`, run `pnpm run package:vsix`, and upload the generated `.vsix` file from the Marketplace publisher management page.
 
-## 라이선스
+## License
 
-이 프로젝트는 MIT 라이선스로 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참고하세요.
+This project is distributed under the MIT License. See `LICENSE` for details.
