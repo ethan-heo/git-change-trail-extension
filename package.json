@@ -78,7 +78,8 @@
     "watch": "tsc -watch -p ./",
     "lint": "eslint src --ext ts",
     "check": "pnpm run compile",
-    "package:vsix": "pnpm run check && pnpm dlx @vscode/vsce package",
+    "changelog": "node scripts/update-changelog.mjs",
+    "package:vsix": "pnpm run changelog && pnpm run check && pnpm dlx @vscode/vsce package",
     "vscode:prepublish": "pnpm run compile"
   },
   "devDependencies": {

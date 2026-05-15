@@ -18,7 +18,8 @@
 - [x] Add `repository`, `bugs`, and `homepage` fields to `package.json`.
 - [ ] Create or verify the Marketplace publisher ID `ethanheo`.
 - [ ] Bump `package.json` version before each `main` push that should publish a new Marketplace release.
-- [ ] Build a VSIX with `pnpm run package:vsix`.
+- [ ] Build a VSIX with `pnpm run package:vsix`; this updates `CHANGELOG.md` for the current package version before packaging.
+- [ ] Review the generated `CHANGELOG.md` entry and adjust wording if needed.
 - [ ] Upload the generated `.vsix` file from the Marketplace publisher management page.
 
 ## Post-publish smoke test

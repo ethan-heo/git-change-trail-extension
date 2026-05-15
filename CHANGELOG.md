@@ -2,6 +2,18 @@
 
 All notable changes to Git Author Explorer will be documented in this file.
 
+## [0.1.1] - 2026-05-15
+
+### Added
+
+- Add VSIX package script. (cb65813)
+
+### Changed
+
+- Update README and license terms. (d9d5525)
+- Switch to manual publishing docs. (2e2a4b4)
+- Prepare VS Code Marketplace release. (02a67c2)
+
 ## [0.1.0] - 2026-05-15
 
 ### Added

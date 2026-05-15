@@ -52,6 +52,8 @@
 - 변경한 기능이 [docs/design/requirements.md](./docs/design/requirements.md)의 요구사항과 맞는지 확인한다.
 - 컴포넌트 책임이 [docs/design/architecture.md](./docs/design/architecture.md)와 어긋나지 않는지 확인한다.
 - 관련 구현 계획서의 테스트 계획을 기준으로 가능한 테스트를 실행한다.
+- 일반 구현, 문서 수정, 리팩터링 작업 완료 시 `pnpm run package:vsix`를 자동으로 실행하지 않는다.
+- `pnpm run package:vsix`는 사용자가 명시적으로 요청했거나, 작업 범위가 패키징/배포 검증 자체일 때만 실행한다.
 - 테스트를 실행하지 못했다면 이유와 남은 위험을 최종 응답에 명확히 남긴다.
 - 문서 경로나 파일 이동이 있었다면 [docs/README.md](./docs/README.md)의 링크를 함께 갱신한다.
 
@@ -65,4 +67,3 @@
 4. `WebviewViewProvider` 구현
 5. 검색 플로우 통합
 6. QA 및 패키징 준비
-
