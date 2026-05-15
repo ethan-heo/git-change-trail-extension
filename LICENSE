@@ -1,16 +1,30 @@
-MIT License
+Git Author Explorer Free Use License
 
 Copyright (c) 2026 Ethan Heo
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is granted, free of charge, to install and use Git Author Explorer
+for personal, educational, internal, and commercial purposes, subject to the
+terms below.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+You may:
+
+- Use the software without paying a license fee.
+- Make copies for backup or internal use.
+- Modify the software for your own personal or internal use.
+
+You may not:
+
+- Redistribute, publish, sublicense, sell, rent, lease, or otherwise make
+  available the software, modified or unmodified, as a standalone product.
+- Publish or distribute a VS Code extension, package, repository, archive, or
+  service that is identical or substantially similar to Git Author Explorer.
+- Remove or alter copyright, license, or attribution notices.
+- Use the name "Git Author Explorer" or confusingly similar names to publish a
+  competing or derivative extension without prior written permission.
+
+If you want to redistribute this software, publish a modified version, or use
+parts of it in another distributed product, you must obtain prior written
+permission from the copyright holder.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
