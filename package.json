@@ -2,7 +2,7 @@
   "name": "git-author-explorer",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "ethanheo",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
@@ -79,6 +79,7 @@
     "lint": "eslint src --ext ts",
     "check": "pnpm run compile",
     "changelog": "node scripts/update-changelog.mjs",
+    "release:tag": "node scripts/create-release-tag.mjs",
     "package:vsix": "pnpm run changelog && pnpm run check && pnpm dlx @vscode/vsce package",
     "vscode:prepublish": "pnpm run compile"
   },

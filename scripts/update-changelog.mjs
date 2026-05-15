@@ -21,27 +21,78 @@ function today() {
   return `${year}-${month}-${day}`;
 }
 
-function latestPreviousVersionTag() {
-  const tags = git(['tag', '--list', '--sort=-creatordate']);
+function versionTags() {
+  const tags = git(['tag', '--list']);
   if (!tags) {
-    return '';
+    return [];
   }
 
-  const currentTags = new Set([version, `v${version}`]);
   return tags
     .split('\n')
     .map((tag) => tag.trim())
-    .find((tag) => /^v?\d+\.\d+\.\d+/.test(tag) && !currentTags.has(tag)) ?? '';
+    .map((tag) => ({ tag, version: parseSemver(tag) }))
+    .filter(({ version }) => version !== null)
+    .sort((left, right) => compareSemver(right.version, left.version));
+}
+
+function currentVersionTag(tags) {
+  return tags.find((tag) => compareSemver(tag.version, parseSemver(version)) === 0)?.tag ?? '';
+}
+
+function previousVersionTag(tags) {
+  const currentVersion = parseSemver(version);
+  if (!currentVersion) {
+    return '';
+  }
+
+  return tags.find((tag) => compareSemver(tag.version, currentVersion) < 0)?.tag ?? '';
+}
+
+function parseSemver(value) {
+  const match = value.match(/^v?(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/);
+  if (!match) {
+    return null;
+  }
+
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3])
+  };
+}
+
+function compareSemver(left, right) {
+  if (!left || !right) {
+    return 0;
+  }
+
+  return left.major - right.major
+    || left.minor - right.minor
+    || left.patch - right.patch;
+}
+
+function releaseRange() {
+  const tags = versionTags();
+  const previousTag = previousVersionTag(tags);
+  const endRef = currentVersionTag(tags) || 'HEAD';
+
+  return {
+    args: previousTag ? [`${previousTag}..${endRef}`] : [endRef],
+    hasPreviousTag: Boolean(previousTag)
+  };
 }
 
 function commitsSinceLatestTag() {
-  const previousTag = latestPreviousVersionTag();
-  const range = previousTag ? [`${previousTag}..HEAD`] : ['HEAD'];
-  const output = git(['log', '--pretty=format:%s%x09%h', ...range]);
+  const range = releaseRange();
+  const output = git(['log', '--pretty=format:%s%x09%h', ...range.args]);
 
   if (!output) {
     return [];
   }
+
+  const releasedHashes = range.hasPreviousTag
+    ? new Set()
+    : hashesAlreadyReleased(readFileSync(changelogPath, 'utf8'));
 
   return output
     .split('\n')
@@ -50,10 +101,40 @@ function commitsSinceLatestTag() {
       return { subject: subject.trim(), hash: hash.trim() };
     })
     .filter(({ subject }) => subject)
+    .filter(({ hash }) => !releasedHashes.has(hash))
     .filter(({ subject }) => !/^merge\b/i.test(subject))
     .filter(({ subject }) => !/^initial commit$/i.test(subject))
     .filter(({ subject }) => !/^bump version\b/i.test(subject))
+    .filter(({ subject }) => !/^update changelog\b/i.test(subject))
     .filter(({ subject }) => !/^release\b/i.test(subject));
+}
+
+function hashesAlreadyReleased(changelog) {
+  const changelogWithoutCurrentSection = removeVersionSection(changelog, version);
+  const hashPattern = /\(([0-9a-f]{7,40})\)/g;
+  const hashes = new Set();
+
+  for (const match of changelogWithoutCurrentSection.matchAll(hashPattern)) {
+    hashes.add(match[1]);
+  }
+
+  return hashes;
+}
+
+function removeVersionSection(changelog, version) {
+  const lines = changelog.split('\n');
+  const start = lines.findIndex((line) => line.startsWith(`## [${version}] - `));
+
+  if (start === -1) {
+    return changelog;
+  }
+
+  const next = lines.findIndex((line, index) => index > start && line.startsWith('## ['));
+  const end = next === -1 ? lines.length : next;
+  return [
+    ...lines.slice(0, start),
+    ...lines.slice(end)
+  ].join('\n');
 }
 
 function normalizeBullet(subject, hash) {

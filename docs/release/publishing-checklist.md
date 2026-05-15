@@ -21,6 +21,8 @@
 - [ ] Build a VSIX with `pnpm run package:vsix`; this updates `CHANGELOG.md` for the current package version before packaging.
 - [ ] Review the generated `CHANGELOG.md` entry and adjust wording if needed.
 - [ ] Upload the generated `.vsix` file from the Marketplace publisher management page.
+- [ ] Create a semver release tag with `pnpm run release:tag`; future changelog generation uses release tags to find the next commit range.
+- [ ] Push the release tag with `git push origin v0.1.2`, or create and push it together with `pnpm run release:tag -- --push`.
 
 ## Post-publish smoke test
 

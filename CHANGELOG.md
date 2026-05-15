@@ -2,6 +2,12 @@
 
 All notable changes to Git Author Explorer will be documented in this file.
 
+## [0.1.2] - 2026-05-15
+
+### Changed
+
+- Package release metadata only.
+
 ## [0.1.1] - 2026-05-15
 
 ### Added
