@@ -6,6 +6,7 @@ All notable changes to Git Author Explorer will be documented in this file.
 
 ### Added
 
+- Add changelog generation for VSIX packaging. (82aa8e1)
 - Add VSIX package script. (cb65813)
 
 ### Changed
