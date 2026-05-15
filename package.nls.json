@@ -1,0 +1,10 @@
+{
+  "extension.displayName": "Git Author Explorer",
+  "extension.description": "Explore files changed by selected Git authors over a date range.",
+  "viewsContainers.gitAuthorExplorer.title": "Git Author Explorer",
+  "views.gitAuthorExplorer.searchView.name": "Search",
+  "views.gitAuthorExplorer.fileTree.name": "Changed Files",
+  "views.gitAuthorExplorer.dependencyTree.name": "Dependency Files",
+  "commands.gitAuthorExplorer.openFile.title": "Open File",
+  "commands.gitAuthorExplorer.refresh.title": "Refresh Git Author Explorer"
+}

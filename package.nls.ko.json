@@ -1,0 +1,10 @@
+{
+  "extension.displayName": "Git Author Explorer",
+  "extension.description": "선택한 Git 저자와 날짜 범위로 변경 파일을 탐색합니다.",
+  "viewsContainers.gitAuthorExplorer.title": "Git Author Explorer",
+  "views.gitAuthorExplorer.searchView.name": "검색",
+  "views.gitAuthorExplorer.fileTree.name": "변경 파일",
+  "views.gitAuthorExplorer.dependencyTree.name": "의존 파일",
+  "commands.gitAuthorExplorer.openFile.title": "파일 열기",
+  "commands.gitAuthorExplorer.refresh.title": "Git Author Explorer 새로 고침"
+}

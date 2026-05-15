@@ -1,0 +1,75 @@
+{
+  "name": "git-author-explorer",
+  "displayName": "%extension.displayName%",
+  "description": "%extension.description%",
+  "version": "0.1.0",
+  "publisher": "ethanheo",
+  "private": true,
+  "packageManager": "pnpm@10.19.0",
+  "l10n": "./l10n",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:gitAuthorExplorer.searchView",
+    "onView:gitAuthorExplorer.fileTree",
+    "onView:gitAuthorExplorer.dependencyTree"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitAuthorExplorer",
+          "title": "%viewsContainers.gitAuthorExplorer.title%",
+          "icon": "resources/git-author-explorer.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitAuthorExplorer": [
+        {
+          "id": "gitAuthorExplorer.searchView",
+          "name": "%views.gitAuthorExplorer.searchView.name%",
+          "type": "webview"
+        },
+        {
+          "id": "gitAuthorExplorer.fileTree",
+          "name": "%views.gitAuthorExplorer.fileTree.name%"
+        },
+        {
+          "id": "gitAuthorExplorer.dependencyTree",
+          "name": "%views.gitAuthorExplorer.dependencyTree.name%"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "gitAuthorExplorer.openFile",
+        "title": "%commands.gitAuthorExplorer.openFile.title%"
+      },
+      {
+        "command": "gitAuthorExplorer.refresh",
+        "title": "%commands.gitAuthorExplorer.refresh.title%"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "check": "pnpm run compile",
+    "vscode:prepublish": "pnpm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}
