@@ -1,5 +1,5 @@
 {
-  "name": "git-file-explorer",
+  "name": "git-change-trail",
   "displayName": "%extension.displayName%",
   "description": "%extension.description%",
   "version": "0.1.0",
@@ -7,12 +7,12 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ethan-heo/git-file-explorer-extension.git"
+    "url": "https://github.com/ethan-heo/git-change-trail-extension.git"
   },
   "bugs": {
-    "url": "https://github.com/ethan-heo/git-file-explorer-extension/issues"
+    "url": "https://github.com/ethan-heo/git-change-trail-extension/issues"
   },
-  "homepage": "https://github.com/ethan-heo/git-file-explorer-extension#readme",
+  "homepage": "https://github.com/ethan-heo/git-change-trail-extension#readme",
   "packageManager": "pnpm@10.19.0",
   "l10n": "./l10n",
   "engines": {
@@ -21,7 +21,7 @@
   "categories": [
     "Other"
   ],
-  "icon": "resources/git-file-explorer.png",
+  "icon": "resources/git-change-trail.png",
   "keywords": [
     "git",
     "history",
@@ -46,7 +46,7 @@
         {
           "id": "gitFileExplorer",
           "title": "%viewsContainers.gitFileExplorer.title%",
-          "icon": "resources/git-file-explorer.svg"
+          "icon": "resources/git-change-trail.svg"
         }
       ]
     },

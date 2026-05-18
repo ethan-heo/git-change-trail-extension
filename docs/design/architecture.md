@@ -2,7 +2,7 @@
 
 ## 전체 구조
 
-Git File Explorer는 VSCode Extension Host에서 Git 명령을 실행하고, 두 개의 Tree View 패널과 가상 문서 Provider를 조합해 파일 기반 커밋 이력 탐색 UI를 제공한다.
+Git Change Trail은 VSCode Extension Host에서 Git 명령을 실행하고, 두 개의 Tree View 패널과 가상 문서 Provider를 조합해 파일 기반 커밋 이력 탐색 UI를 제공한다.
 
 ```text
 VSCode Extension
@@ -115,7 +115,7 @@ COMMIT FILES (#2)  [comparing: #2 ↔ #3]
 ```text
 contributes.viewsContainers.activitybar
   - id: gitFileExplorer
-  - title: Git File Explorer
+  - title: Git Change Trail
 
 contributes.views.gitFileExplorer
   - gitFileExplorer.commitHistory  (Commit History)

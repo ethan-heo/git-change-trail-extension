@@ -1,7 +1,7 @@
 {
-  "extension.displayName": "Git File Explorer",
+  "extension.displayName": "Git Change Trail",
   "extension.description": "활성 Git 파일의 커밋 이력과 리비전 diff를 탐색합니다.",
-  "viewsContainers.gitFileExplorer.title": "Git File Explorer",
+  "viewsContainers.gitFileExplorer.title": "Git Change Trail",
   "views.gitFileExplorer.commitHistory.name": "커밋 이력",
   "views.gitFileExplorer.commitFiles.name": "커밋 파일",
   "viewsWelcome.gitFileExplorer.commitHistory": "파일을 열거나 Explorer에서 **커밋 이력 보기**를 실행하세요.",

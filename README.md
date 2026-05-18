@@ -1,10 +1,10 @@
-# Git File Explorer
+# Git Change Trail
 
 [한국어](README.ko.md)
 
 ## Introduction
 
-Git File Explorer is a VS Code extension that shows the commit history of the file you are currently editing. Click a commit to see which files changed, open any file at that revision, and compare revisions side by side — all from the sidebar without leaving your editor.
+Git Change Trail is a VS Code extension that shows the commit history of the file you are currently editing. Click a commit to see which files changed, open any file at that revision, and compare revisions side by side — all from the sidebar without leaving your editor.
 
 ## Features
 

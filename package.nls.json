@@ -1,7 +1,7 @@
 {
-  "extension.displayName": "Git File Explorer",
+  "extension.displayName": "Git Change Trail",
   "extension.description": "Explore commit history and revision diffs for the active Git file.",
-  "viewsContainers.gitFileExplorer.title": "Git File Explorer",
+  "viewsContainers.gitFileExplorer.title": "Git Change Trail",
   "views.gitFileExplorer.commitHistory.name": "Commit History",
   "views.gitFileExplorer.commitFiles.name": "Commit Files",
   "viewsWelcome.gitFileExplorer.commitHistory": "Open a file or run **Show Commit History** from Explorer.",

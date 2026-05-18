@@ -1,6 +1,6 @@
-# Git File Explorer 개발 문서
+# Git Change Trail 개발 문서
 
-이 디렉토리는 Git File Explorer 확장의 설계와 구현 계획을 담은 개발 문서 모음입니다.
+이 디렉토리는 Git Change Trail 확장의 설계와 구현 계획을 담은 개발 문서 모음입니다.
 
 > **2026-05-18 피벗**: 기존 "저자 기반 파일 검색" MVP에서 "파일 기반 커밋 이력 탐색"으로 기능이 전면 전환되었습니다. 변경 이유는 [decision-log.md](./planning/decision-log.md)를 참고하세요.
 
