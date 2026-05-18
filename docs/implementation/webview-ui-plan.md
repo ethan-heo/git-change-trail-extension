@@ -1,76 +1,86 @@
-# Webview UI 개발 계획서
+# 패널 인터랙션 개발 계획서
+
+> 이 문서는 기존 Webview UI 계획서를 대체한다. 저자 검색 Webview는 제거되었으며, 모든 UI는 VSCode 네이티브 API(Tree View, QuickPick, InputBox, Editor Title Actions)로 구성된다.
 
 ## 목표
 
-사이드바 패널에서 저자 검색, 복수 선택, 기간 입력, 검색 실행, 상태 메시지를 제공한다.
+두 개의 Tree View 패널과 에디터 타이틀 버튼, 날짜 필터 QuickPick을 조합해 파일 기반 커밋 이력 탐색 인터랙션을 제공한다.
 
-## 레이아웃
+## 인터랙션 목록
 
-```text
-Git Author Explorer
-  Author
-    [검색어 입력]
-    [드롭다운]
-
-  선택된 저자
-    [Ethan Kim x] [Jason Park x]
-
-  From          To
-    [date]      [date]
-
-  [Search]
-
-  상태 영역
-    로딩 / 빈 결과 / 오류 메시지
-```
-
-## 상태 모델
-
-```typescript
-interface ViewState {
-  authorQuery: string;
-  authors: string[];
-  selectedAuthors: string[];
-  from: string;
-  to: string;
-  loading: boolean;
-  errorMessage?: string;
-  emptyMessage?: string;
-}
-```
-
-## 인터랙션
+### 에디터 파일 자동 추적
 
 | 동작 | 결과 |
 |------|------|
-| Author 입력 | `searchAuthors` 메시지를 전송하고 드롭다운을 표시한다. |
-| 드롭다운 항목 클릭 | 선택 태그를 추가한다. |
-| 이미 선택된 저자 클릭 | 중복 추가하지 않고 선택 상태만 유지한다. |
-| 태그 삭제 클릭 | 해당 저자를 선택 목록에서 제거한다. |
-| Search 클릭 | 저자 0명인 경우 인라인 메시지, 아니면 `search` 메시지 전송 |
-| 로딩 시작 | Search 버튼 비활성화, 스피너 표시 |
-| 오류 수신 | 오류 메시지와 재시도 버튼 표시 |
+| 에디터에서 파일 탭 전환 | 핀이 꺼져 있으면 Commit History 패널 자동 갱신 |
+| 핀이 켜진 상태에서 탭 전환 | 패널 갱신 없음 |
+| Git 파일이 아닌 경우 (신규 미저장 파일 등) | 패널 빈 상태로 유지, 안내 메시지 표시 |
 
-## 날짜 기본값
+### Commit History 패널 타이틀 버튼
 
-패널 최초 렌더링 시:
+| 버튼 | 아이콘 | 동작 |
+|------|--------|------|
+| 핀 고정/해제 | `$(pin)` / `$(pinned)` | 현재 파일 고정. 다시 클릭하면 자동 추적 재개 |
+| 날짜 필터 | `$(calendar)` | QuickPick 열어 from/to 날짜 입력 |
 
-- `to`: 오늘
-- `from`: 오늘 기준 7일 전
+### 날짜 필터 QuickPick
 
-날짜 포맷은 HTML date input과 Git 명령에 모두 전달하기 쉬운 `YYYY-MM-DD`를 사용한다.
+1. 아이콘 클릭 시 QuickPick 두 단계로 순서 진행:
+   - Step 1: `From` 날짜 입력 (`YYYY-MM-DD` 형식, 비워두면 무제한)
+   - Step 2: `To` 날짜 입력 (`YYYY-MM-DD` 형식, 비워두면 오늘)
+2. 입력 완료 시 `CommitHistoryProvider.setDateFilter()` 호출 후 이력 재조회
+3. 필터 적용 중에는 패널 타이틀 description에 기간 표시
+
+```text
+Commit History  [2026-05-01 ~ 2026-05-18]
+```
+
+### 커밋 항목 클릭
+
+| 동작 | 결과 |
+|------|------|
+| 커밋 행 클릭 | Commit Files 패널이 해당 커밋의 변경 파일 트리로 갱신 |
+
+### Commit Files 패널
+
+| 동작 | 결과 |
+|------|------|
+| 파일 행 클릭 | 해당 커밋 시점의 파일 내용을 읽기 전용 에디터로 열기 |
+| 디렉토리 행 클릭 | 펼치기/접기 |
+| diff 진행 중 | 패널 description에 `comparing: #2 ↔ #3` 표시 |
+
+### 에디터 타이틀 버튼 (Editor Title Actions)
+
+git revision 가상 문서(`gitrevision://` scheme)가 열렸을 때만 노출된다.
+
+| 버튼 | 아이콘 | 동작 |
+|------|--------|------|
+| 이전 커밋과 비교 | `$(arrow-up)` | 현재보다 오래된 커밋과 diff 열기 |
+| 이후 커밋과 비교 | `$(arrow-down)` | 현재보다 최신 커밋과 diff 열기 |
+
+- 이전 커밋이 없으면 `$(arrow-up)` 비활성화
+- 이후 커밋이 없으면 `$(arrow-down)` 비활성화
+- diff 열기 시 VSCode `vscode.diff` 명령으로 두 가상 문서 URI를 비교
+- diff 제목 형식: `Button.tsx: #2 ↔ #3`
+
+### Explorer 컨텍스트 메뉴
+
+| 동작 | 결과 |
+|------|------|
+| 파일 우클릭 → "커밋 이력 보기" | 핀 해제 후 해당 파일 이력 강제 로드 |
+| 디렉토리 우클릭 | 메뉴 항목 미표시 (`when: !explorerResourceIsFolder`) |
+
+## 상태 경계 처리
+
+| 상황 | 표시 |
+|------|------|
+| 활성 파일 없음 | "파일을 열면 커밋 이력이 표시됩니다." |
+| Git 저장소 없음 | "Git 저장소를 찾을 수 없습니다." |
+| 커밋 이력 없음 | "이 파일의 커밋 이력이 없습니다." |
+| 로딩 중 | Tree View `viewsWelcome` 또는 `description`으로 로딩 상태 표시 |
 
 ## 스타일 기준
 
-- VSCode theme color CSS variable을 우선 사용한다.
-- 좁은 사이드바에서도 입력 필드와 태그가 줄바꿈되도록 한다.
-- 버튼/입력/태그는 VSCode 기본 UI 톤과 유사하게 차분하게 만든다.
-- 오류, 빈 결과, 로딩 상태는 같은 상태 영역에 표시해 레이아웃 흔들림을 줄인다.
-
-## 보안 기준
-
-- Webview script는 nonce를 적용한다.
-- `enableScripts`는 필요 범위에서만 켠다.
-- Webview HTML에 사용자 입력을 삽입할 때 HTML escape를 적용한다.
-- 메시지 payload는 Extension Host에서 다시 검증한다.
-
+- 모든 UI는 VSCode 네이티브 컴포넌트를 사용한다. 커스텀 CSS 없음.
+- 아이콘은 VSCode codicon 라이브러리를 사용한다.
+- 패널 타이틀 버튼은 `view/title` contribution으로 등록한다.

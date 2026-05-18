@@ -1,81 +1,99 @@
 # 마일스톤 개발 계획서
 
-## M1. 프로젝트 초기화
+## M1. 프로젝트 재구성
 
-예상 기간: 1일
+예상 기간: 0.5일
 
-- `yo code` 또는 기존 템플릿 기반 VSCode 확장 프로젝트 생성
-- TypeScript 빌드 설정
-- ESLint 설정
-- `package.json` 메타데이터 작성
-- `contributes.views`, `contributes.commands`, `activationEvents` 설정
+- `package.json` contribution 전면 재작성 (views, commands, menus, activationEvents)
+- 기존 소스 파일 제거 (`searchViewProvider.ts`, `fileTreeProvider.ts`, `dependencyService.ts`)
+- 새 파일 골격 생성 (`commitHistoryProvider.ts`, `commitFilesProvider.ts`, `revisionContentProvider.ts`)
 
 완료 기준:
 
-- 확장이 VSCode Extension Development Host에서 실행된다.
-- 사이드바에 Git Author Explorer 영역이 표시된다.
+- Extension Development Host에서 사이드바에 두 개의 패널(Commit History, Commit Files)이 표시된다.
+- Explorer 우클릭 메뉴에 "커밋 이력 보기" 항목이 보인다.
 
 ## M2. GitService 구현
 
 예상 기간: 1~2일
 
-- Git 실행 유틸 작성
-- 저자 목록 조회 구현
-- 변경 파일 목록 조회 구현
-- 복수 저자 병렬 조회 및 결과 병합
+- `getFileHistory(filePath, filter)` 구현
+- `getCommitFiles(hash)` 구현 (루트 커밋 fallback 포함)
+- `getFileContentAtCommit(hash, path)` 구현
+- `getAdjacentCommit(hash, filePath, direction)` 구현
 - 오류 메시지 정규화
 - 단위 테스트 작성
 
 완료 기준:
 
-- 실제 Git 저장소에서 저자 목록과 파일 목록을 가져온다.
-- 저장소 없음/빈 결과/명령 실패를 구분한다.
+- 실제 Git 저장소에서 파일 커밋 이력, 커밋 변경 파일, 커밋 시점 파일 내용을 정상 조회한다.
+- 저장소 없음/파일 없음/명령 실패를 구분한 메시지를 반환한다.
 
-## M3. FileTreeProvider 구현
+## M3. CommitHistoryProvider 구현
 
-예상 기간: 1~2일
+예상 기간: 1일
 
-- `FileTreeNode` 정의
-- 경로 배열을 트리로 변환하는 `buildTree` 구현
-- `TreeDataProvider` 등록
-- 파일 클릭 시 에디터 열기 command 연결
-
-완료 기준:
-
-- 검색 결과 파일들이 디렉토리 구조로 표시된다.
-- 파일 클릭 시 해당 파일이 열린다.
-
-## M4. WebviewView 구현
-
-예상 기간: 2~3일
-
-- 검색 폼 HTML/CSS 작성
-- 저자 검색 드롭다운 구현
-- 선택 태그 추가/삭제 구현
-- From/To 날짜 입력 구현
-- Extension Host와 메시지 통신 연결
-- 로딩/빈 결과/오류 상태 표시
+- `CommitNode` TreeItem 정의 및 렌더링
+- `loadFile`, `setDateFilter`, `togglePin` 구현
+- `onDidSelectCommit` 이벤트 발행
+- 에디터 `onDidChangeActiveTextEditor` 구독 연결
+- 날짜 필터 QuickPick 연결
+- 핀 버튼 상태 토글
 
 완료 기준:
 
-- 사용자가 UI만으로 저자와 기간을 선택해 검색할 수 있다.
-- 검색 결과가 트리뷰에 반영된다.
+- 파일을 열거나 탭을 전환하면 Commit History 패널이 자동 갱신된다.
+- 날짜 필터 적용 시 해당 기간 커밋만 표시된다.
+- 핀 활성화 시 탭 전환에도 패널이 고정된다.
 
-## M5. 통합 및 QA
+## M4. CommitFilesProvider 구현
+
+예상 기간: 1일
+
+- `FileTreeNode` 정의 및 경로 → 트리 변환 (`buildTree`) 구현
+- `loadCommit`, `setCompareState`, `clearCompareState` 구현
+- 파일 클릭 시 `gitrevision://` URI로 에디터 열기 연결
+- 패널 타이틀 비교 상태 반영
+
+완료 기준:
+
+- 커밋 항목 클릭 시 변경 파일이 디렉토리 트리로 표시된다.
+- 파일 클릭 시 해당 커밋 시점의 파일 내용이 읽기 전용으로 열린다.
+- diff 진행 중 패널 타이틀에 `comparing: #N ↔ #M`이 표시된다.
+
+## M5. RevisionContentProvider 및 Diff 구현
+
+예상 기간: 1일
+
+- `gitrevision://` scheme `TextDocumentContentProvider` 구현
+- `getFileContentAtCommit` 연결
+- 이전/이후 커밋 diff 에디터 타이틀 버튼 연결
+- diff 버튼 `when` 조건 (`resourceScheme == gitrevision`) 적용
+- diff 비교 시 `CommitFilesProvider.setCompareState` 호출
+
+완료 기준:
+
+- 커밋 시점 파일이 읽기 전용으로 열린다.
+- 이전/이후 커밋과의 diff가 VSCode 기본 diff 에디터로 열린다.
+- diff 버튼은 git revision 가상 문서가 열렸을 때만 노출된다.
+
+## M6. 통합 및 QA
 
 예상 기간: 1~2일
 
 - 전체 플로우 E2E 검증
-- 대형 저장소, 모노레포, 빈 저장소 테스트
+- 대형 저장소, 모노레포, 빈 저장소, 단일 커밋 저장소 테스트
+- 루트 커밋(부모 없음) 처리 테스트
+- 파일 이름 변경 이력 추적 테스트 (`--follow`)
 - 날짜 경계값 테스트
 - VSCode 최소 버전 호환성 확인
 
 완료 기준:
 
 - 주요 시나리오와 예외 시나리오가 모두 동작한다.
-- 패널 오류가 사용자에게 이해 가능한 메시지로 표시된다.
+- 오류가 사용자에게 이해 가능한 메시지로 표시된다.
 
-## M6. 패키징 및 배포
+## M7. 패키징 및 배포
 
 예상 기간: 1일
 
@@ -88,4 +106,3 @@
 
 - 로컬 `.vsix` 설치 테스트를 통과한다.
 - 배포용 메타데이터가 준비된다.
-
