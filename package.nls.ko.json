@@ -1,10 +1,17 @@
 {
-  "extension.displayName": "Git Author Explorer",
-  "extension.description": "선택한 Git 저자와 날짜 범위로 변경 파일을 탐색합니다.",
-  "viewsContainers.gitAuthorExplorer.title": "Git Author Explorer",
-  "views.gitAuthorExplorer.searchView.name": "검색",
-  "views.gitAuthorExplorer.fileTree.name": "변경 파일",
-  "views.gitAuthorExplorer.dependencyTree.name": "의존 파일",
-  "commands.gitAuthorExplorer.openFile.title": "파일 열기",
-  "commands.gitAuthorExplorer.refresh.title": "Git Author Explorer 새로 고침"
+  "extension.displayName": "Git File Explorer",
+  "extension.description": "활성 Git 파일의 커밋 이력과 리비전 diff를 탐색합니다.",
+  "viewsContainers.gitFileExplorer.title": "Git File Explorer",
+  "views.gitFileExplorer.commitHistory.name": "커밋 이력",
+  "views.gitFileExplorer.commitFiles.name": "커밋 파일",
+  "viewsWelcome.gitFileExplorer.commitHistory": "파일을 열거나 Explorer에서 **커밋 이력 보기**를 실행하세요.",
+  "viewsWelcome.gitFileExplorer.commitFiles": "Commit History에서 커밋을 선택하면 변경 파일이 표시됩니다.",
+  "commands.gitFileExplorer.showHistory.title": "커밋 이력 보기",
+  "commands.gitFileExplorer.filterByDate.title": "날짜로 필터",
+  "commands.gitFileExplorer.filterByAuthor.title": "저자로 필터",
+  "commands.gitFileExplorer.togglePin.title": "커밋 이력 고정",
+  "commands.gitFileExplorer.openFileAtCommit.title": "커밋 시점 파일 열기",
+  "commands.gitFileExplorer.showFileHistoryFromCommitFile.title": "전체 파일 이력 보기",
+  "commands.gitFileExplorer.diffWithPrevious.title": "이전 커밋과 비교",
+  "commands.gitFileExplorer.diffWithNext.title": "이후 커밋과 비교"
 }

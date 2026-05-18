@@ -1,10 +1,17 @@
 {
-  "extension.displayName": "Git Author Explorer",
-  "extension.description": "Explore files changed by selected Git authors over a date range.",
-  "viewsContainers.gitAuthorExplorer.title": "Git Author Explorer",
-  "views.gitAuthorExplorer.searchView.name": "Search",
-  "views.gitAuthorExplorer.fileTree.name": "Changed Files",
-  "views.gitAuthorExplorer.dependencyTree.name": "Dependency Files",
-  "commands.gitAuthorExplorer.openFile.title": "Open File",
-  "commands.gitAuthorExplorer.refresh.title": "Refresh Git Author Explorer"
+  "extension.displayName": "Git File Explorer",
+  "extension.description": "Explore commit history and revision diffs for the active Git file.",
+  "viewsContainers.gitFileExplorer.title": "Git File Explorer",
+  "views.gitFileExplorer.commitHistory.name": "Commit History",
+  "views.gitFileExplorer.commitFiles.name": "Commit Files",
+  "viewsWelcome.gitFileExplorer.commitHistory": "Open a file or run **Show Commit History** from Explorer.",
+  "viewsWelcome.gitFileExplorer.commitFiles": "Select a commit from Commit History to show changed files.",
+  "commands.gitFileExplorer.showHistory.title": "Show Commit History",
+  "commands.gitFileExplorer.filterByDate.title": "Filter by Date",
+  "commands.gitFileExplorer.filterByAuthor.title": "Filter by Author",
+  "commands.gitFileExplorer.togglePin.title": "Pin Commit History",
+  "commands.gitFileExplorer.openFileAtCommit.title": "Open File at Commit",
+  "commands.gitFileExplorer.showFileHistoryFromCommitFile.title": "Show Full File History",
+  "commands.gitFileExplorer.diffWithPrevious.title": "Diff with Previous Commit",
+  "commands.gitFileExplorer.diffWithNext.title": "Diff with Next Commit"
 }

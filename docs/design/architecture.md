@@ -9,6 +9,7 @@ VSCode Extension
   CommitHistoryProvider (TreeDataProvider)
     - 활성 파일의 커밋 이력 목록 (#1, #2, ...)
     - 날짜 필터 상태 관리
+    - 저자 필터 상태 관리
     - 핀 고정 상태 관리
 
   CommitFilesProvider (TreeDataProvider)
@@ -33,9 +34,9 @@ VSCode Extension
 
 | 컴포넌트 | 책임 |
 |----------|------|
-| `CommitHistoryProvider` | 파일의 커밋 이력 TreeDataProvider 구현, 날짜 필터/핀 상태 보관, 커밋 선택 이벤트 발행 |
+| `CommitHistoryProvider` | 파일의 커밋 이력 TreeDataProvider 구현, 날짜 필터/저자 필터/핀 상태 보관, 커밋 선택 이벤트 발행 |
 | `CommitFilesProvider` | 선택 커밋의 변경 파일을 디렉토리 트리로 렌더링, diff 비교 상태 패널 타이틀 반영 |
-| `GitService` | Git CLI 실행, stdout 파싱, 오류 정규화 |
+| `GitService` | Git CLI 실행, 커밋/저자 stdout 파싱, 오류 정규화 |
 | `RevisionContentProvider` | `gitrevision://` scheme 가상 문서 제공, `git show <hash>:<path>` 실행 |
 | `CommitNode` | 커밋 이력 노드: 번호, hash, 날짜, 메시지 보관 |
 | `FileTreeNode` | 변경 파일 노드: 표시명, 타입(file/directory), 상대경로, 자식 노드 보관 |
@@ -61,7 +62,7 @@ COMMIT FILES (#2)  [comparing: #2 ↔ #3]
 ```text
 [자동 추적] 에디터 탭 전환 (onDidChangeActiveTextEditor)
   → 핀 고정 여부 확인
-  → GitService.getFileHistory(filePath, dateFilter)
+  → GitService.getFileHistory(filePath, historyFilter)
   → CommitHistoryProvider.refresh(commits)
   → Commit History 패널 갱신
 
@@ -74,20 +75,34 @@ COMMIT FILES (#2)  [comparing: #2 ↔ #3]
   → Commit Files 패널 갱신
 
 파일 항목 클릭 (Commit Files 트리)
-  → Uri: gitrevision://<hash>/<relativePath>
+  → Uri: gitrevision://<hash>/<displayPath>?path=<relativePath>
   → RevisionContentProvider.provideTextDocumentContent()
   → GitService.getFileContentAtCommit(hash, path)
-  → 읽기 전용 에디터로 열림
+  → 실제 파일과 구분되는 제목의 읽기 전용 에디터로 열림
 
-이전/이후 diff 버튼 클릭 (Editor Title)
+전체 이력 버튼 클릭 (Commit Files 파일 항목 인라인 액션)
+  → 파일 노드 relativePath 기준
+  → 날짜/저자 필터 초기화
+  → CommitHistoryProvider.loadFile(relativePath, force)
+  → Commit History 패널에 해당 파일의 전체 커밋 이력 표시
+  → Commit History 패널로 포커스 이동
+
+이전/이후 diff 버튼 클릭 (Commit Files 파일 항목 인라인 액션)
+  → 선택 커밋 hash + 파일 relativePath 기준
   → GitService.getAdjacentCommit(hash, filePath, direction)
   → vscode.diff(revisionUri1, revisionUri2, title)
   → CommitFilesProvider.setCompareState(commitA, commitB)
   → 패널 타이틀에 "#N ↔ #M" 반영
 
 날짜 필터 아이콘 클릭 (Commit History 타이틀)
-  → QuickPick/InputBox로 from/to 입력
+  → QuickPick으로 초기화/직접 입력/최근 기간 프리셋 선택
+  → 직접 입력 선택 시 InputBox로 from/to 입력
   → CommitHistoryProvider.setDateFilter(from, to)
+  → 이력 재조회 및 패널 갱신
+
+저자 필터 아이콘 클릭 (Commit History 타이틀)
+  → 현재 파일 이력의 저자 목록을 QuickPick 다중 선택으로 표시
+  → CommitHistoryProvider.setAuthorFilter(authors)
   → 이력 재조회 및 패널 갱신
 
 핀 버튼 클릭 (Commit History 타이틀)
@@ -109,16 +124,20 @@ contributes.views.gitFileExplorer
 contributes.commands
   - gitFileExplorer.showHistory       Explorer 우클릭 트리거
   - gitFileExplorer.filterByDate      날짜 필터 (calendar 아이콘)
+  - gitFileExplorer.filterByAuthor    저자 필터 (account 아이콘)
   - gitFileExplorer.togglePin         핀 고정/해제 (pin 아이콘)
   - gitFileExplorer.openFileAtCommit  커밋 시점 파일 열기
+  - gitFileExplorer.showFileHistoryFromCommitFile
+                                        Commit Files 파일 항목에서 전체 이력 보기
   - gitFileExplorer.diffWithPrevious  이전 커밋과 diff (화살표 위 아이콘)
   - gitFileExplorer.diffWithNext      이후 커밋과 diff (화살표 아래 아이콘)
 
 contributes.menus
   - explorer/context        showHistory 명령
-  - view/title              filterByDate, togglePin (commitHistory 패널)
-  - editor/title            diffWithPrevious, diffWithNext
-                            (when: resourceScheme == gitrevision)
+  - view/title              filterByDate, filterByAuthor, togglePin (commitHistory 패널)
+  - view/item/context       showFileHistoryFromCommitFile, diffWithPrevious, diffWithNext
+                            (when: view == gitFileExplorer.commitFiles && viewItem == file,
+                             group: inline)
 ```
 
 ## 메시지/이벤트 계약
@@ -132,14 +151,16 @@ onDidSelectCommit: vscode.Event<CommitEntry>
 // Extension entry → CommitHistoryProvider
 onDidChangeActiveTextEditor (VSCode 네이티브 이벤트)
 
-// CommitFilesProvider → Editor Title 버튼 활성화
-// resourceScheme == 'gitrevision' when 조건으로 판단
+// Commit Files 파일 노드 → showFileHistoryFromCommitFile/diffWithPrevious/diffWithNext
+// view/item/context 인라인 액션에서 파일 노드를 command argument로 전달
 ```
 
 ## 구현 원칙
 
 - Git 명령 실행은 `GitService`로 격리한다.
 - 절대 경로 계산은 workspace root 기준으로 Extension Host에서 수행한다.
-- 가상 문서 URI 형식: `gitrevision://<hash>/<workspace-relative-path>`
+- 가상 문서 URI 형식: `gitrevision://<hash>/<display-path>?path=<workspace-relative-path>`
+  - 에디터 탭 제목 구분을 위해 path에는 `Button (Git abc1234).tsx` 같은 표시용 파일명을 사용한다.
+  - 실제 Git 조회에 사용할 workspace 상대 경로는 query의 `path` 값으로 보관한다.
 - 오류 메시지는 내부 예외를 그대로 노출하지 않고 사용자 행동이 가능한 문장으로 변환한다.
-- diff 버튼은 `when` 조건(`resourceScheme == gitrevision`)으로 가상 문서가 열렸을 때만 노출한다.
+- 커밋 파일 패널의 전체 이력/diff 버튼은 `view/item/context` 인라인 액션으로 파일 항목에만 노출한다.

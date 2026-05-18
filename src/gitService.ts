@@ -1,137 +1,108 @@
 import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 import * as vscode from 'vscode';
 
 const execFileAsync = promisify(execFile);
 
-export interface GitAuthor {
-  name: string;
-  email: string;
-  raw: string;
+export interface CommitEntry {
+  hash: string;
+  date: string;
+  authorName: string;
+  authorEmail: string;
+  subject: string;
+  index: number;
 }
 
-export interface ChangedFileResult {
-  relativePath: string;
-  authorChangeCount: number;
-  totalChangeCount: number;
-  authorRatio: number;
+export interface DateFilter {
+  from?: string;
+  to?: string;
+}
+
+export interface HistoryFilter extends DateFilter {
+  authors?: string[];
 }
 
 export class GitService {
   public constructor(private readonly workspaceRoot: string | undefined) {}
 
-  public async getAuthors(query = ''): Promise<GitAuthor[]> {
-    this.getWorkspaceRoot();
+  public async getFileHistory(filePath: string, filter?: HistoryFilter): Promise<CommitEntry[]> {
+    const relativePath = this.toWorkspaceRelativePath(filePath);
+    const args = [
+      'log',
+      '--follow',
+      '--format=%H%x00%ai%x00%an%x00%ae%x00%s',
+      ...filter?.from ? [`--after=${filter.from}`] : [],
+      ...filter?.to ? [`--before=${filter.to}`] : [],
+      '--',
+      relativePath
+    ];
+    const { stdout } = await this.runGit(args);
 
-    const { stdout } = await this.runGit(['shortlog', '-sne', 'HEAD']);
-    const authors = parseAuthors(stdout);
-    const normalizedQuery = query.trim().toLowerCase();
-
-    if (!normalizedQuery) {
-      return authors;
-    }
-
-    return authors.filter((author) => {
-      return author.name.toLowerCase().includes(normalizedQuery)
-        || author.email.toLowerCase().includes(normalizedQuery)
-        || author.raw.toLowerCase().includes(normalizedQuery);
-    });
+    return applyAuthorFilter(parseCommitHistory(stdout), filter?.authors);
   }
 
-  public async searchChangedFiles(authors: string[], from: string, to: string): Promise<ChangedFileResult[]> {
-    this.getWorkspaceRoot();
-
-    if (!authors.length) {
-      return [];
-    }
-
-    const [authorStats, totalStats] = await Promise.all([
-      this.getChangedFileStats(from, to, authors),
-      this.getChangedFileStats(from, to)
-    ]);
-
-    return [...authorStats.entries()]
-      .filter(([relativePath]) => this.fileExists(relativePath))
-      .map(([relativePath, authorChangeCount]) => {
-        const totalChangeCount = totalStats.get(relativePath) ?? authorChangeCount;
-        return {
-          relativePath,
-          authorChangeCount,
-          totalChangeCount,
-          authorRatio: totalChangeCount > 0 ? authorChangeCount / totalChangeCount : 0
-        };
-      })
-      .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  public async getFileAuthors(filePath: string, filter?: DateFilter): Promise<string[]> {
+    const commits = await this.getFileHistory(filePath, filter);
+    const authors = new Set(commits.map(formatAuthor).filter(Boolean));
+    return [...authors].sort((a, b) => a.localeCompare(b));
   }
 
-  public async getChangedFilesForPaths(
-    relativePaths: string[],
-    authors: string[],
-    from: string,
-    to: string
-  ): Promise<ChangedFileResult[]> {
-    this.getWorkspaceRoot();
+  public async getCommitFiles(hash: string): Promise<string[]> {
+    const { stdout } = await this.runGit(['diff-tree', '--no-commit-id', '-r', '--name-only', hash]);
+    const files = parseChangedFiles(stdout);
 
-    if (!relativePaths.length || !authors.length) {
-      return [];
+    if (files.length) {
+      return files;
     }
 
-    const uniquePaths = [...new Set(relativePaths)].filter((relativePath) => this.fileExists(relativePath));
-    const [authorStats, totalStats] = await Promise.all([
-      this.getChangedFileStats(from, to, authors),
-      this.getChangedFileStats(from, to)
-    ]);
-
-    return uniquePaths
-      .map((relativePath) => {
-        const authorChangeCount = authorStats.get(relativePath) ?? 0;
-        const totalChangeCount = totalStats.get(relativePath) ?? 0;
-        return {
-          relativePath,
-          authorChangeCount,
-          totalChangeCount,
-          authorRatio: totalChangeCount > 0 ? authorChangeCount / totalChangeCount : 0
-        };
-      })
-      .sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+    const fallback = await this.runGit(['show', '--name-only', '--format=', hash]);
+    return parseChangedFiles(fallback.stdout);
   }
 
-  private async getChangedFileStats(from: string, to: string, authors?: string[]): Promise<Map<string, number>> {
-    const results = await Promise.all(
-      (authors?.length ? authors : [undefined]).map(async (author) => {
-        const authorArg = author ? [`--author=${author}`] : [];
-        const { stdout } = await this.runGit([
-          'log',
-          ...authorArg,
-          `--after=${from}`,
-          `--before=${to}`,
-          '--numstat',
-          '--pretty=format:'
-        ]);
+  public async getFileContentAtCommit(hash: string, relativePath: string): Promise<string> {
+    const normalizedPath = normalizeRelativePath(relativePath);
+    const { stdout } = await this.runGit(['show', `${hash}:${normalizedPath}`]);
+    return stdout;
+  }
 
-        return parseNumstat(stdout);
-      })
-    );
+  public async getAdjacentCommit(
+    hash: string,
+    filePath: string,
+    direction: 'prev' | 'next',
+    filter?: HistoryFilter
+  ): Promise<CommitEntry | undefined> {
+    const commits = await this.getFileHistory(filePath, filter);
+    const currentIndex = commits.findIndex((entry) => entry.hash === hash);
 
-    const stats = new Map<string, number>();
-    for (const result of results) {
-      for (const [relativePath, changeCount] of result) {
-        stats.set(relativePath, (stats.get(relativePath) ?? 0) + changeCount);
-      }
+    if (currentIndex < 0) {
+      return undefined;
     }
-    return stats;
+
+    const adjacentIndex = direction === 'prev' ? currentIndex + 1 : currentIndex - 1;
+    return commits[adjacentIndex];
   }
 
-  private fileExists(relativePath: string): boolean {
-    return existsSync(path.join(this.getWorkspaceRoot(), relativePath));
+  public async getCommitEntry(hash: string, filePath: string, filter?: HistoryFilter): Promise<CommitEntry | undefined> {
+    const commits = await this.getFileHistory(filePath, filter);
+    return commits.find((entry) => entry.hash === hash);
+  }
+
+  public toWorkspaceRelativePath(filePath: string): string {
+    const workspaceRoot = this.getWorkspaceRoot();
+    const normalizedFilePath = normalizeRelativePath(filePath);
+
+    if (!path.isAbsolute(filePath)) {
+      return normalizedFilePath;
+    }
+
+    return normalizeRelativePath(path.relative(workspaceRoot, filePath));
   }
 
   private async runGit(args: string[]): Promise<{ stdout: string; stderr: string }> {
     try {
       return await execFileAsync('git', args, {
-        cwd: this.workspaceRoot,
+        cwd: this.getWorkspaceRoot(),
         encoding: 'utf8',
         maxBuffer: 10 * 1024 * 1024
       });
@@ -149,20 +120,41 @@ export class GitService {
   }
 }
 
-export function parseAuthors(stdout: string): GitAuthor[] {
+export function parseCommitHistory(stdout: string): CommitEntry[] {
   return stdout
     .split(/\r?\n/)
-    .map((line) => line.trim())
     .filter(Boolean)
-    .map((line) => line.replace(/^\d+\s+/, '').trim())
-    .map((raw) => {
-      const match = raw.match(/^(.*?)\s*<([^>]+)>$/);
+    .map((line, index) => {
+      const [hash, date, authorName, authorEmail, subject] = line.split('\0');
       return {
-        name: match?.[1]?.trim() ?? raw,
-        email: match?.[2]?.trim() ?? '',
-        raw
+        hash,
+        date,
+        authorName: authorName ?? '',
+        authorEmail: authorEmail ?? '',
+        subject: subject ?? '',
+        index: index + 1
       };
-    });
+    })
+    .filter((entry) => entry.hash && entry.date);
+}
+
+export function formatAuthor(entry: Pick<CommitEntry, 'authorName' | 'authorEmail'>): string {
+  if (entry.authorName && entry.authorEmail) {
+    return `${entry.authorName} <${entry.authorEmail}>`;
+  }
+
+  return entry.authorName || entry.authorEmail;
+}
+
+function applyAuthorFilter(commits: CommitEntry[], authors: string[] | undefined): CommitEntry[] {
+  if (!authors?.length) {
+    return commits;
+  }
+
+  const selectedAuthors = new Set(authors);
+  return commits
+    .filter((entry) => selectedAuthors.has(formatAuthor(entry)))
+    .map((entry, index) => ({ ...entry, index: index + 1 }));
 }
 
 export function parseChangedFiles(stdout: string): string[] {
@@ -172,53 +164,32 @@ export function parseChangedFiles(stdout: string): string[] {
     .filter(Boolean);
 }
 
-export function parseNumstat(stdout: string): Map<string, number> {
-  const stats = new Map<string, number>();
-
-  stdout
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .forEach((line) => {
-      const [added, deleted, ...pathParts] = line.split(/\t/);
-      const relativePath = normalizeNumstatPath(pathParts.join('\t').trim());
-
-      if (!relativePath) {
-        return;
-      }
-
-      const addedCount = Number.parseInt(added, 10);
-      const deletedCount = Number.parseInt(deleted, 10);
-      const isBinaryChange = Number.isNaN(addedCount) && Number.isNaN(deletedCount);
-      const changeCount = isBinaryChange
-        ? 1
-        : (Number.isNaN(addedCount) ? 0 : addedCount) + (Number.isNaN(deletedCount) ? 0 : deletedCount);
-
-      stats.set(relativePath, (stats.get(relativePath) ?? 0) + changeCount);
-    });
-
-  return stats;
-}
-
-function normalizeNumstatPath(relativePath: string): string {
-  return relativePath
-    .replace(/\{([^{}]*?)\s=>\s([^{}]*?)\}/g, '$2')
-    .replace(/^(.+?)\s=>\s(.+)$/, '$2');
+function normalizeRelativePath(relativePath: string): string {
+  return relativePath.replace(/\\/g, '/').replace(/^\/+/, '');
 }
 
 function normalizeGitError(error: unknown): Error {
-  const maybeError = error as NodeJS.ErrnoException & { stderr?: string };
+  const maybeError = error as NodeJS.ErrnoException & { stderr?: string; message?: string };
   const stderr = maybeError.stderr ?? '';
+  const normalizedStderr = stderr.toLowerCase();
 
   if (maybeError.code === 'ENOENT') {
     return new Error(vscode.l10n.t('Git is not installed.'));
   }
 
-  if (stderr.includes('not a git repository')) {
+  if (normalizedStderr.includes('not a git repository')) {
     return new Error(vscode.l10n.t('Git repository not found.'));
   }
 
-  if (stderr.toLowerCase().includes('date')) {
+  if (
+    normalizedStderr.includes('does not exist')
+    || normalizedStderr.includes('unknown revision')
+    || normalizedStderr.includes('exists on disk, but not in')
+  ) {
+    return new Error(vscode.l10n.t('The file does not exist in this commit.'));
+  }
+
+  if (normalizedStderr.includes('date')) {
     return new Error(vscode.l10n.t('Please check the date range.'));
   }
 

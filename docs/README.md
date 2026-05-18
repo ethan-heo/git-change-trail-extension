@@ -35,7 +35,7 @@
 |------|------|
 | [git-service-plan.md](./implementation/git-service-plan.md) | Git CLI 연동, 파일 이력/커밋 파일/파일 내용 조회 계획 |
 | [file-tree-provider-plan.md](./implementation/file-tree-provider-plan.md) | CommitHistoryProvider, CommitFilesProvider 구현 계획 |
-| [webview-ui-plan.md](./implementation/webview-ui-plan.md) | 패널 인터랙션 계획 (Tree View, QuickPick, Editor Title Actions) |
+| [webview-ui-plan.md](./implementation/webview-ui-plan.md) | 패널 인터랙션 계획 (Tree View, QuickPick, InputBox) |
 
 ### Planning
 

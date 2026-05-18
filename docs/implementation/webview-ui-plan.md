@@ -1,10 +1,10 @@
 # 패널 인터랙션 개발 계획서
 
-> 이 문서는 기존 Webview UI 계획서를 대체한다. 저자 검색 Webview는 제거되었으며, 모든 UI는 VSCode 네이티브 API(Tree View, QuickPick, InputBox, Editor Title Actions)로 구성된다.
+> 이 문서는 기존 Webview UI 계획서를 대체한다. 저자 검색 Webview는 제거되었으며, 모든 UI는 VSCode 네이티브 API(Tree View, QuickPick, InputBox)로 구성된다.
 
 ## 목표
 
-두 개의 Tree View 패널과 에디터 타이틀 버튼, 날짜 필터 QuickPick을 조합해 파일 기반 커밋 이력 탐색 인터랙션을 제공한다.
+두 개의 Tree View 패널과 날짜/저자 필터 QuickPick을 조합해 파일 기반 커밋 이력 탐색 인터랙션을 제공한다.
 
 ## 인터랙션 목록
 
@@ -21,19 +21,31 @@
 | 버튼 | 아이콘 | 동작 |
 |------|--------|------|
 | 핀 고정/해제 | `$(pin)` / `$(pinned)` | 현재 파일 고정. 다시 클릭하면 자동 추적 재개 |
-| 날짜 필터 | `$(calendar)` | QuickPick 열어 from/to 날짜 입력 |
+| 날짜 필터 | `$(calendar)` | QuickPick 열어 초기화/직접 입력/최근 기간 선택 |
+| 저자 필터 | `$(account)` | QuickPick 다중 선택으로 현재 파일 이력의 저자 선택 |
 
 ### 날짜 필터 QuickPick
 
-1. 아이콘 클릭 시 QuickPick 두 단계로 순서 진행:
-   - Step 1: `From` 날짜 입력 (`YYYY-MM-DD` 형식, 비워두면 무제한)
-   - Step 2: `To` 날짜 입력 (`YYYY-MM-DD` 형식, 비워두면 오늘)
-2. 입력 완료 시 `CommitHistoryProvider.setDateFilter()` 호출 후 이력 재조회
-3. 필터 적용 중에는 패널 타이틀 description에 기간 표시
+1. 아이콘 클릭 시 QuickPick으로 날짜 필터 조작을 선택한다.
+   - 필터 적용 중이면 `날짜 필터 초기화` 항목을 첫 번째로 표시한다.
+   - `기간 직접 입력` 선택 시 `From`/`To` 날짜를 순서대로 입력한다.
+   - `최근 7일`, `최근 30일` 프리셋을 제공한다.
+2. 직접 입력의 `From`/`To`는 `YYYY-MM-DD` 형식을 사용하며, 비워두면 해당 경계 제한을 두지 않는다.
+3. 선택 완료 시 `CommitHistoryProvider.setDateFilter()` 호출 후 이력 재조회
+4. 필터 적용 중에는 패널 타이틀 description에 기간 표시
+5. 필터 초기화 시 빈 DateFilter를 적용하고 기간 표시를 제거
 
 ```text
 Commit History  [2026-05-01 ~ 2026-05-18]
 ```
+
+### 저자 필터 QuickPick
+
+1. 아이콘 클릭 시 현재 파일 이력의 저자 목록을 QuickPick으로 표시한다.
+2. 이미 선택된 저자는 체크된 상태로 표시한다.
+3. `canPickMany`를 사용해 여러 저자를 선택할 수 있다.
+4. 선택 완료 시 `CommitHistoryProvider.setAuthorFilter()` 호출 후 이력 재조회
+5. 선택을 모두 해제하면 저자 필터를 초기화하고 패널 타이틀 description에서 저자 표시를 제거한다.
 
 ### 커밋 항목 클릭
 
@@ -46,22 +58,12 @@ Commit History  [2026-05-01 ~ 2026-05-18]
 | 동작 | 결과 |
 |------|------|
 | 파일 행 클릭 | 해당 커밋 시점의 파일 내용을 읽기 전용 에디터로 열기 |
+| 파일 행 인라인 전체 이력 버튼 클릭 | 해당 파일의 전체 커밋 이력을 Commit History 패널에 표시 |
+| 파일 행 인라인 이전/이후 diff 버튼 클릭 | 선택 커밋 기준 이전/이후 커밋과 VSCode 기본 diff 열기 |
 | 디렉토리 행 클릭 | 펼치기/접기 |
 | diff 진행 중 | 패널 description에 `comparing: #2 ↔ #3` 표시 |
 
-### 에디터 타이틀 버튼 (Editor Title Actions)
-
-git revision 가상 문서(`gitrevision://` scheme)가 열렸을 때만 노출된다.
-
-| 버튼 | 아이콘 | 동작 |
-|------|--------|------|
-| 이전 커밋과 비교 | `$(arrow-up)` | 현재보다 오래된 커밋과 diff 열기 |
-| 이후 커밋과 비교 | `$(arrow-down)` | 현재보다 최신 커밋과 diff 열기 |
-
-- 이전 커밋이 없으면 `$(arrow-up)` 비활성화
-- 이후 커밋이 없으면 `$(arrow-down)` 비활성화
-- diff 열기 시 VSCode `vscode.diff` 명령으로 두 가상 문서 URI를 비교
-- diff 제목 형식: `Button.tsx: #2 ↔ #3`
+파일 행의 전체 이력/diff 버튼은 `view/item/context` contribution의 `inline` 그룹으로 등록하고, `viewItem == file` 조건에서만 노출한다.
 
 ### Explorer 컨텍스트 메뉴
 

@@ -67,15 +67,17 @@
 
 - `gitrevision://` scheme `TextDocumentContentProvider` 구현
 - `getFileContentAtCommit` 연결
-- 이전/이후 커밋 diff 에디터 타이틀 버튼 연결
-- diff 버튼 `when` 조건 (`resourceScheme == gitrevision`) 적용
+- Commit Files 파일 항목에서 전체 이력 버튼 연결
+- 이전/이후 커밋 diff Commit Files 파일 항목 인라인 버튼 연결
+- 전체 이력/diff 버튼 `when` 조건 (`view == gitFileExplorer.commitFiles && viewItem == file`) 적용
 - diff 비교 시 `CommitFilesProvider.setCompareState` 호출
 
 완료 기준:
 
 - 커밋 시점 파일이 읽기 전용으로 열린다.
+- Commit Files 파일 항목에서 해당 파일의 전체 커밋 이력을 열 수 있다.
 - 이전/이후 커밋과의 diff가 VSCode 기본 diff 에디터로 열린다.
-- diff 버튼은 git revision 가상 문서가 열렸을 때만 노출된다.
+- Commit Files 전체 이력/diff 버튼은 파일 항목에만 노출된다.
 
 ## M6. 통합 및 QA
 

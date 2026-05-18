@@ -24,52 +24,136 @@
   "icon": "resources/git-author-explorer.png",
   "keywords": [
     "git",
-    "author",
-    "blame",
     "history",
-    "search"
+    "diff",
+    "file"
   ],
   "activationEvents": [
-    "onView:gitAuthorExplorer.searchView",
-    "onView:gitAuthorExplorer.fileTree",
-    "onView:gitAuthorExplorer.dependencyTree"
+    "onView:gitFileExplorer.commitHistory",
+    "onView:gitFileExplorer.commitFiles",
+    "onCommand:gitFileExplorer.showHistory",
+    "onCommand:gitFileExplorer.filterByDate",
+    "onCommand:gitFileExplorer.filterByAuthor",
+    "onCommand:gitFileExplorer.togglePin",
+    "onCommand:gitFileExplorer.showFileHistoryFromCommitFile",
+    "onCommand:gitFileExplorer.diffWithPrevious",
+    "onCommand:gitFileExplorer.diffWithNext"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "gitAuthorExplorer",
-          "title": "%viewsContainers.gitAuthorExplorer.title%",
+          "id": "gitFileExplorer",
+          "title": "%viewsContainers.gitFileExplorer.title%",
           "icon": "resources/git-author-explorer.svg"
         }
       ]
     },
     "views": {
-      "gitAuthorExplorer": [
+      "gitFileExplorer": [
         {
-          "id": "gitAuthorExplorer.searchView",
-          "name": "%views.gitAuthorExplorer.searchView.name%",
-          "type": "webview"
+          "id": "gitFileExplorer.commitHistory",
+          "name": "%views.gitFileExplorer.commitHistory.name%"
         },
         {
-          "id": "gitAuthorExplorer.fileTree",
-          "name": "%views.gitAuthorExplorer.fileTree.name%"
-        },
-        {
-          "id": "gitAuthorExplorer.dependencyTree",
-          "name": "%views.gitAuthorExplorer.dependencyTree.name%"
+          "id": "gitFileExplorer.commitFiles",
+          "name": "%views.gitFileExplorer.commitFiles.name%"
         }
       ]
     },
     "commands": [
       {
-        "command": "gitAuthorExplorer.openFile",
-        "title": "%commands.gitAuthorExplorer.openFile.title%"
+        "command": "gitFileExplorer.showHistory",
+        "title": "%commands.gitFileExplorer.showHistory.title%",
+        "icon": "$(history)"
       },
       {
-        "command": "gitAuthorExplorer.refresh",
-        "title": "%commands.gitAuthorExplorer.refresh.title%"
+        "command": "gitFileExplorer.filterByDate",
+        "title": "%commands.gitFileExplorer.filterByDate.title%",
+        "icon": "$(calendar)"
+      },
+      {
+        "command": "gitFileExplorer.filterByAuthor",
+        "title": "%commands.gitFileExplorer.filterByAuthor.title%",
+        "icon": "$(account)"
+      },
+      {
+        "command": "gitFileExplorer.togglePin",
+        "title": "%commands.gitFileExplorer.togglePin.title%",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "gitFileExplorer.openFileAtCommit",
+        "title": "%commands.gitFileExplorer.openFileAtCommit.title%"
+      },
+      {
+        "command": "gitFileExplorer.showFileHistoryFromCommitFile",
+        "title": "%commands.gitFileExplorer.showFileHistoryFromCommitFile.title%",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gitFileExplorer.diffWithPrevious",
+        "title": "%commands.gitFileExplorer.diffWithPrevious.title%",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "gitFileExplorer.diffWithNext",
+        "title": "%commands.gitFileExplorer.diffWithNext.title%",
+        "icon": "$(arrow-down)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "gitFileExplorer.showHistory",
+          "when": "!explorerResourceIsFolder",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "gitFileExplorer.togglePin",
+          "when": "view == gitFileExplorer.commitHistory",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gitFileExplorer.filterByDate",
+          "when": "view == gitFileExplorer.commitHistory",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gitFileExplorer.filterByAuthor",
+          "when": "view == gitFileExplorer.commitHistory",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gitFileExplorer.showFileHistoryFromCommitFile",
+          "when": "view == gitFileExplorer.commitFiles && viewItem == file",
+          "group": "inline@1"
+        },
+        {
+          "command": "gitFileExplorer.diffWithPrevious",
+          "when": "view == gitFileExplorer.commitFiles && viewItem == file",
+          "group": "inline@2"
+        },
+        {
+          "command": "gitFileExplorer.diffWithNext",
+          "when": "view == gitFileExplorer.commitFiles && viewItem == file",
+          "group": "inline@3"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "gitFileExplorer.commitHistory",
+        "contents": "%viewsWelcome.gitFileExplorer.commitHistory%"
+      },
+      {
+        "view": "gitFileExplorer.commitFiles",
+        "contents": "%viewsWelcome.gitFileExplorer.commitFiles%"
       }
     ]
   },
