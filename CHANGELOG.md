@@ -12,7 +12,7 @@
 
 - reset release metadata. (de5c167)
 - rename extension package metadata. (03bd8f0)
-- Rewrite README for Git Change Trail redesign. (bc35637)
+- Rewrite README for Git File Explorer redesign. (bc35637)
 - Redesign docs for file-based commit history explorer. (5ffd6bd)
 - Update README and license terms. (d9d5525)
 - Switch to manual publishing docs. (2e2a4b4)
